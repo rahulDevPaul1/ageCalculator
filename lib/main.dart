@@ -1,31 +1,35 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MyApp());
-}
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/',
-      routes: {
-        '/': (context) => InputPage(),
-        '/result': (context) => ResultPage(),
-      },
+      title: 'Age Calculator App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: HomePage(),
     );
   }
 }
 
-class InputPage extends StatefulWidget {
+class HomePage extends StatefulWidget {
   @override
-  _InputPageState createState() => _InputPageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _InputPageState extends State<InputPage> {
-  int selectedDay = 1;
-  int selectedMonth = 1;
-  int selectedYear = 1971;
+class _HomePageState extends State<HomePage> {
+  final List<String> days = List.generate(31, (index) => (index + 1).toString());
+  final List<String> months = [
+    'January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December'
+  ];
+
+  String selectedDay = '1';
+  String selectedMonth = 'January';
+  TextEditingController yearController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -34,67 +38,67 @@ class _InputPageState extends State<InputPage> {
         title: Text('Age Calculator'),
       ),
       body: Padding(
-        padding: EdgeInsetsDirectional.symmetric(vertical: 280),
-
-        child: Row(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-            DropdownButton<int>(
-              value: selectedDay,
-              onChanged: (value) {
-                setState(() {
-                  selectedDay = value!;
-                });
-              },
-              items: List.generate(31, (index) {
-                return DropdownMenuItem<int>(
-                  value: index + 1,
-                  child: Text('${index + 1}'),
-                );
-              }),
+            Text(
+              'Select your birthdate:',
+              style: TextStyle(fontSize: 18),
             ),
-            SizedBox(height: 16.0),
-            DropdownButton<int>(
-              value: selectedMonth,
-              onChanged: (value) {
-                setState(() {
-                  selectedMonth = value!;
-                });
-              },
-              items: List.generate(12, (index) {
-                return DropdownMenuItem<int>(
-                  value: index + 1,
-                  child: Text('${index + 1}'),
-                );
-              }),
+            Row(
+              children: [
+                DropdownButton<String>(
+                  value: selectedDay,
+                  onChanged: (String? value) {
+                    setState(() {
+                      selectedDay = value!;
+                    });
+                  },
+                  items: days.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                SizedBox(width: 16),
+                DropdownButton<String>(
+                  value: selectedMonth,
+                  onChanged: (String? value) {
+                    setState(() {
+                      selectedMonth = value!;
+                    });
+                  },
+                  items: months.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
-            SizedBox(height: 16.0),
-            DropdownButton<int>(
-              value: selectedYear,
-              onChanged: (value) {
-                setState(() {
-                  selectedYear = value!;
-                });
-              },
-              items: List.generate(53, (index) {
-                return DropdownMenuItem<int>(
-                  value: 1971 + index,
-                  child: Text('${1971 + index}'),
-                );
-              }),
+            SizedBox(height: 16),
+            TextField(
+              controller: yearController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Enter your birth year',
+              ),
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(
+                int birthYear = int.tryParse(yearController.text) ?? 0;
+                int currentYear = DateTime.now().year;
+                int age = currentYear - birthYear;
+
+                Navigator.push(
                   context,
-                  '/result',
-                  arguments: {
-                    'day': selectedDay,
-                    'month': selectedMonth,
-                    'year': selectedYear,
-                  },
+                  MaterialPageRoute(
+                    builder: (context) => ResultPage(age: age),
+                  ),
                 );
               },
               child: Text('Calculate Age'),
@@ -107,78 +111,101 @@ class _InputPageState extends State<InputPage> {
 }
 
 class ResultPage extends StatelessWidget {
+  final int age;
+
+  ResultPage({required this.age});
 
   @override
   Widget build(BuildContext context) {
-    Map<String, int> args =
-    ModalRoute.of(context)!.settings.arguments as Map<String, int>;
-
-    DateTime currentDate = DateTime.now();
-    DateTime birthDate = DateTime(args['year']!, args['month']!, args['day']!);
-
-    Duration difference = currentDate.difference(birthDate);
-    int age = (difference.inDays / 365).floor();
-
     return Scaffold(
-
       appBar: AppBar(
-        title: Text('Result'),
+        title: Text('Age Result'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Your age is $age years.',
-              style: TextStyle(fontSize: 20.0),
+              'Your Age: $age years',
+              style: TextStyle(fontSize: 20),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => ThirdPage(),
-                )
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ColorBoxesPage(),
+                  ),
                 );
-              }, child: Text('Next'),
-            )
+              },
+              child: Text('Go to Color Boxes Page'),
+            ),
           ],
         ),
-
       ),
     );
   }
 }
 
-class ThirdPage extends StatelessWidget {
+class ColorBoxesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Third Page'),
+        title: Text('Color Boxes'),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+
           children: [
-            colorfulBox(Colors.red),
-            colorfulBox(Colors.blue),
-            colorfulBox(Colors.green),
-            colorfulBox(Colors.yellow),
-            colorfulBox(Colors.purple),
+            Expanded(child:
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+
+                ColorBox(Colors.red),
+                ColorBox(Colors.blue),
+                ColorBox(Colors.green),
+                ColorBox(Colors.yellow),
+                ColorBox(Colors.purple),
+              ],
+            ),),
+            SizedBox(height: 16),
+
+            Flexible(child:
+            Row(
+
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+
+
+                ColorBox(Colors.orange),
+                ColorBox(Colors.teal),
+                ColorBox(Colors.pink),
+                ColorBox(Colors.indigo),
+                ColorBox(Colors.brown),
+              ],
+            ),),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget colorfulBox(Color color) {
-    return SizedBox(
-      width: 400,
-      height: 120,
-      child: Container(
-        color: color,
-      ),
+class ColorBox extends StatelessWidget {
+  final Color color;
+
+  ColorBox(this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      height: 100,
+      color: color,
+
     );
   }
 }
-
-
